@@ -13,6 +13,13 @@ A terminal-based guitar tablature editor built with Go and Bubble Tea.
 - **Keyboard-driven**: Efficient workflows without mouse dependency
 - **Cross-platform**: Works on Linux, macOS, and Windows
 
+## Screenshots
+
+<p float="left">
+  <img src="Screenshot_20250812_083727_Termux.jpg" alt="Tuitar Browser" style="max-width:600px; margin-right: 10px;" />
+  <img src="Screenshot_20250812_083802_Termux.jpg" alt="Tuitar Editor" style="max-width:600px;" />
+</p>
+
 ## Installation
 
 ```bash
