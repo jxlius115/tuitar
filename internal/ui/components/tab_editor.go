@@ -2,7 +2,6 @@
 package components
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -24,7 +23,7 @@ type TabEditorModel struct {
 
 func NewTabEditor(tab *models.Tab) TabEditorModel {
 	vp := viewport.New(80, 20)
-	
+
 	return TabEditorModel{
 		tab:      tab,
 		viewport: vp,
@@ -75,7 +74,7 @@ func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
 			m.changed = true
 		}
 	}
-	
+
 	var cmd tea.Cmd
 	m.viewport, cmd = m.viewport.Update(msg)
 	return m, cmd
@@ -99,20 +98,20 @@ func (m *TabEditorModel) deleteCharAt(pos models.Position) {
 
 func (m TabEditorModel) View() string {
 	var lines []string
-	
+
 	// String labels
 	stringLabels := []string{"e", "B", "G", "D", "A", "E"}
-	
+
 	for i, label := range stringLabels {
 		line := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("14")).
 			Render(label + "|")
-		
+
 		// Render tab content with cursor highlighting
 		content := m.tab.Content[i]
 		for pos, char := range content {
 			style := lipgloss.NewStyle()
-			
+
 			// Highlight cursor position
 			if m.cursor.String == i && m.cursor.Position == pos {
 				if m.editMode == models.EditInsert {
@@ -121,20 +120,20 @@ func (m TabEditorModel) View() string {
 					style = style.Background(lipgloss.Color("12")).Foreground(lipgloss.Color("15"))
 				}
 			}
-			
+
 			line += style.Render(string(char))
 		}
-		
+
 		line += lipgloss.NewStyle().
 			Foreground(lipgloss.Color("14")).
 			Render("|")
-			
+
 		lines = append(lines, line)
 	}
-	
+
 	content := strings.Join(lines, "\n")
 	m.viewport.SetContent(content)
-	
+
 	return m.viewport.View()
 }
 
