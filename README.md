@@ -4,13 +4,13 @@ A terminal-based guitar tablature editor built with Go and Bubble Tea.
 
 ## Features
 
-- ✨ **Intuitive Terminal Interface**: Vim-like keyboard navigation
-- 📝 **Real-time Tab Editing**: Create and edit guitar tabs with instant feedback
-- 🎵 **MIDI Playback**: Play your tabs with visual highlighting (basic implementation)
-- 💾 **Local Storage**: SQLite-based tab management
-- 🔍 **Tab Browser**: Browse, search, and organize your tabs
-- ⌨️  **Keyboard-driven**: Efficient workflows without mouse dependency
-- 🌍 **Cross-platform**: Works on Linux, macOS, and Windows
+- **Intuitive Terminal Interface**: Vim-like keyboard navigation
+- **Real-time Tab Editing**: Create and edit guitar tabs with instant feedback
+- **MIDI Playback**: Play your tabs with visual highlighting (basic implementation)
+- **Local Storage**: SQLite-based tab management
+- **Tab Browser**: Browse, search, and organize your tabs
+- **Keyboard-driven**: Efficient workflows without mouse dependency
+- **Cross-platform**: Works on Linux, macOS, and Windows
 
 ## Installation
 
@@ -48,17 +48,20 @@ go install github.com/Cod-e-Codes/tuitar@latest
 - `k` / `↑` - Move up
 - `Enter` - Edit selected tab
 
-### Editor Mode
+### Editor Mode (Normal)
 - `h` / `←` - Move cursor left
 - `j` / `↓` - Move cursor down (to next string)
 - `k` / `↑` - Move cursor up (to previous string)
 - `l` / `→` - Move cursor right
-- `i` - Enter insert mode
-- `Esc` - Return to normal mode
-- `0-9` - Insert fret number (in insert mode)
-- `-` - Insert rest (in insert mode)
 - `x` - Delete character at cursor
-- `Space` - Play/pause tab (basic implementation)
+- `Space` - Play/pause tab
+- `i` - Switch to insert mode
+- `Esc` - Stay in normal mode (no insertion)
+
+### Editor Mode (Insert)
+- `0-9` - Insert fret number
+- `-` - Insert rest
+- `Esc` - Return to normal mode
 
 ## Project Structure
 
