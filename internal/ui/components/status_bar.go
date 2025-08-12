@@ -28,7 +28,7 @@ func (m StatusBarModel) View() string {
 			Background(lipgloss.Color("8")).
 			Foreground(lipgloss.Color("15")).
 			Width(80).
-			Render(" Guitar Tab TUI - Ready")
+			Render(" tuitar - Ready")
 	}
 	
 	// Show message for 3 seconds, then clear
