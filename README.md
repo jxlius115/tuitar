@@ -91,7 +91,7 @@ Tuitar uses a modal editing system inspired by Vim:
 
 3. **Visual Feedback**: 
    - Current cursor position is highlighted
-   - Insert mode shows with yellow/gold highlighting
+   - Insert mode shows with yellow highlighting
    - Normal mode shows with blue highlighting
    - Mode indicator shows current editing mode
 
