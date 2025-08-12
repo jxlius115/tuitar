@@ -19,7 +19,8 @@ A terminal-based guitar tablature editor built with Go and Bubble Tea.
 git clone https://github.com/Cod-e-Codes/tuitar
 cd tuitar
 go build -o tuitar
-
+```
+```bash
 # Or install directly
 go install github.com/Cod-e-Codes/tuitar@latest
 ```
