@@ -21,17 +21,18 @@ type TabEditorModel struct {
 }
 
 func NewTabEditor(tab *models.Tab) TabEditorModel {
-	vp := viewport.New(80, 20)
-
-	// Ensure tab content is always valid (6 strings, same length)
-	if len(tab.Content) != 6 {
+	// Ensure Content is initialized with 6 strings of equal length
+	if tab.Content == nil || len(tab.Content) != 6 {
 		tab.Content = make([]string, 6)
 	}
+	// Fill empty strings with default rests ("-" * length)
 	for i := range tab.Content {
 		if len(tab.Content[i]) == 0 {
-			tab.Content[i] = strings.Repeat("-", 80) // default 80 fret positions
+			tab.Content[i] = strings.Repeat("-", 80) // default width 80
 		}
 	}
+
+	vp := viewport.New(80, 20)
 
 	return TabEditorModel{
 		tab:      tab,
@@ -45,11 +46,6 @@ func (m *TabEditorModel) SetSize(width, height int) {
 	m.height = height
 	m.viewport.Width = width
 	m.viewport.Height = height - 4 // Reserve space for headers
-}
-
-// SetEditMode lets parent sync mode into the editor
-func (m *TabEditorModel) SetEditMode(mode models.EditMode) {
-	m.editMode = mode
 }
 
 func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
@@ -98,16 +94,21 @@ func (m *TabEditorModel) insertCharAt(pos models.Position, char rune) {
 	line := []rune(m.tab.Content[pos.String])
 	if pos.Position < len(line) {
 		line[pos.Position] = char
-		m.tab.Content[pos.String] = string(line)
+	} else {
+		// Extend line with rests if cursor is beyond current length
+		extra := strings.Repeat("-", pos.Position-len(line)+1)
+		line = []rune(string(line) + extra)
+		line[pos.Position] = char
 	}
+	m.tab.Content[pos.String] = string(line)
 }
 
 func (m *TabEditorModel) deleteCharAt(pos models.Position) {
 	line := []rune(m.tab.Content[pos.String])
 	if pos.Position < len(line) {
 		line[pos.Position] = '-'
-		m.tab.Content[pos.String] = string(line)
 	}
+	m.tab.Content[pos.String] = string(line)
 }
 
 func (m TabEditorModel) View() string {
@@ -150,4 +151,8 @@ func (m TabEditorModel) HasChanged() bool {
 
 func (m TabEditorModel) GetTab() *models.Tab {
 	return m.tab
+}
+
+func (m *TabEditorModel) SetEditMode(mode models.EditMode) {
+	m.editMode = mode
 }
