@@ -1,7 +1,7 @@
 // internal/storage/storage.go
 package storage
 
-import "github.com/Cod-d-Codes/tuitar/internal/models"
+import "github.com/Cod-e-Codes/tuitar/internal/models"
 
 type Storage interface {
 	SaveTab(tab *models.Tab) error
