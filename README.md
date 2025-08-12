@@ -64,11 +64,10 @@ go install github.com/Cod-e-Codes/tuitar@latest
 
 The application follows a clean architecture pattern:
 
-- `models/` - Core data structures and business logic
-- `storage/` - Data persistence layer (SQLite)
-- `ui/` - Bubble Tea UI components and views  
-- `midi/` - MIDI playback functionality (basic implementation)
-- `parser/` - Import/export parsers for different tab formats
+- `internal/models/` - Core data structures and business logic
+- `internal/storage/` - Data persistence layer (SQLite)
+- `internal/ui/` - Bubble Tea UI components and views  
+- `internal/midi/` - MIDI playback functionality (basic implementation)
 
 ## Building from Source
 
@@ -76,13 +75,19 @@ The application follows a clean architecture pattern:
 # Clone the repository
 git clone https://github.com/Cod-e-Codes/tuitar
 cd tuitar
+```
 
+```bash
 # Install dependencies
 go mod tidy
+```
 
+```bash
 # Build
 go build -o tuitar
+```
 
+```bash
 # Run
 ./tuitar
 ```
