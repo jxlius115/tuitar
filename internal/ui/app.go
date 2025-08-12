@@ -44,6 +44,7 @@ type KeyMap struct {
 	Insert    key.Binding
 	Normal    key.Binding
 	Browser   key.Binding
+	Delete    key.Binding
 }
 
 func (k KeyMap) ShortHelp() []key.Binding {
@@ -55,7 +56,7 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 		{k.Up, k.Down, k.Left, k.Right},
 		{k.Enter, k.Quit, k.Help},
 		{k.Save, k.New, k.Play},
-		{k.Insert, k.Normal, k.Browser},
+		{k.Insert, k.Normal, k.Browser, k.Delete},
 	}
 }
 
@@ -113,6 +114,10 @@ func NewKeyMap() KeyMap {
 			key.WithKeys("tab"),
 			key.WithHelp("tab", "toggle browser"),
 		),
+		Delete: key.NewBinding(
+			key.WithKeys("x"),
+			key.WithHelp("x", "delete fret"),
+		),
 	}
 }
 
@@ -156,19 +161,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.showHelp = !m.showHelp
 			return m, nil
 
-		case key.Matches(msg, m.keys.Browser):
-			if m.state.ViewMode == models.ViewBrowser {
-				m.state.ViewMode = models.ViewEditor
-			} else {
-				m.state.ViewMode = models.ViewBrowser
-			}
+		case key.Matches(msg, m.keys.Browser) && m.state.ViewMode == models.ViewEditor:
+			// Only allow browser switch from editor, not from browser to avoid conflicts
+			m.state.ViewMode = models.ViewBrowser
 			return m, nil
 
 		case key.Matches(msg, m.keys.New):
 			newTab := models.NewEmptyTab("New Tab")
 			m.state.CurrentTab = newTab
 			m.tabEditor = components.NewTabEditor(newTab)
+			m.tabEditor.SetEditMode(models.EditNormal)
 			m.state.ViewMode = models.ViewEditor
+			m.state.EditMode = models.EditNormal
 			return m, nil
 
 		case key.Matches(msg, m.keys.Save):
@@ -178,6 +182,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.statusBar.SetStatus("Error saving tab: " + err.Error())
 				} else {
 					m.statusBar.SetStatus("Tab saved successfully")
+					// Refresh tabs list
+					if tabs, err := m.storage.LoadAllTabs(); err == nil {
+						m.tabs = tabs
+						m.tabBrowser.SetTabs(tabs)
+					}
 				}
 			}
 			return m, nil
@@ -202,9 +211,13 @@ func (m Model) updateBrowser(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case key.Matches(msg, m.keys.Enter):
 		if len(m.tabs) > 0 && m.tabBrowser.Cursor() < len(m.tabs) {
 			selectedTab := &m.tabs[m.tabBrowser.Cursor()]
-			m.state.CurrentTab = selectedTab
-			m.tabEditor = components.NewTabEditor(selectedTab)
+			// Create a copy of the tab to avoid modifying the original
+			tabCopy := *selectedTab
+			m.state.CurrentTab = &tabCopy
+			m.tabEditor = components.NewTabEditor(&tabCopy)
+			m.tabEditor.SetEditMode(models.EditNormal)
 			m.state.ViewMode = models.ViewEditor
+			m.state.EditMode = models.EditNormal
 		}
 		return m, nil
 	}
@@ -219,14 +232,21 @@ func (m Model) updateEditor(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, m.keys.Insert):
 		m.state.EditMode = models.EditInsert
+		m.tabEditor.SetEditMode(models.EditInsert)
+		m.statusBar.SetStatus("-- INSERT MODE --")
 		return m, nil
 
 	case key.Matches(msg, m.keys.Normal):
 		m.state.EditMode = models.EditNormal
+		m.tabEditor.SetEditMode(models.EditNormal)
+		m.statusBar.SetStatus("-- NORMAL MODE --")
 		return m, nil
 	}
 
+	// Pass the message to the tab editor for handling
 	m.tabEditor, cmd = m.tabEditor.Update(msg)
+	
+	// Update the current tab if it has changed
 	if m.tabEditor.HasChanged() {
 		m.state.CurrentTab = m.tabEditor.GetTab()
 	}
@@ -261,7 +281,7 @@ func (m Model) renderBrowser() string {
 
 	help := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("8")).
-		Render("Enter: Edit • Ctrl+N: New • Tab: Switch View • ?: Help • Q: Quit")
+		Render("Enter: Edit • Ctrl+N: New • ?: Help • Q: Quit")
 
 	return lipgloss.JoinVertical(lipgloss.Left,
 		title,
@@ -283,18 +303,27 @@ func (m Model) renderEditor() string {
 		Render(fmt.Sprintf("Editing: %s", m.state.CurrentTab.Name))
 
 	mode := "NORMAL"
+	modeColor := lipgloss.Color("12")
 	if m.state.EditMode == models.EditInsert {
 		mode = "INSERT"
+		modeColor = lipgloss.Color("11")
 	}
 
 	modeIndicator := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("11")).
+		Foreground(modeColor).
 		Render(fmt.Sprintf("-- %s --", mode))
 
-	help := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("8")).
-		Render("I: Insert • Esc: Normal • Ctrl+S: Save • Tab: Browser • Space: Play")
+	var help string
+	if m.state.EditMode == models.EditInsert {
+		help = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("8")).
+			Render("0-9: Insert fret • -: Rest • Esc: Normal mode • Arrows: Navigate")
+	} else {
+		help = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("8")).
+			Render("I: Insert • X: Delete • Ctrl+S: Save • Tab: Browser • Space: Play • Arrows: Navigate")
+	}
 
 	return lipgloss.JoinVertical(lipgloss.Left,
 		title,
