@@ -4,11 +4,12 @@ A terminal-based guitar tablature editor built with Go and Bubble Tea.
 
 ## Features
 
-- **Intuitive Terminal Interface**: Vim-like keyboard navigation
-- **Real-time Tab Editing**: Create and edit guitar tabs with instant feedback
+- **Intuitive Terminal Interface**: Vim-like keyboard navigation with modal editing
+- **Real-time Tab Editing**: Create and edit guitar tabs with instant visual feedback
+- **Modal Editing**: Separate Normal and Insert modes for efficient editing workflow
 - **MIDI Playback**: Play your tabs with visual highlighting (basic implementation)
-- **Local Storage**: SQLite-based tab management
-- **Tab Browser**: Browse, search, and organize your tabs
+- **Local Storage**: SQLite-based tab management with auto-save functionality
+- **Tab Browser**: Browse, search, and organize your tabs with easy navigation
 - **Keyboard-driven**: Efficient workflows without mouse dependency
 - **Cross-platform**: Works on Linux, macOS, and Windows
 
@@ -39,7 +40,6 @@ go install github.com/Cod-e-Codes/tuitar@latest
 ### Global
 - `q` / `Ctrl+C` - Quit application
 - `?` - Toggle help
-- `Tab` - Switch between browser and editor
 - `Ctrl+N` - Create new tab
 - `Ctrl+S` - Save current tab
 
@@ -53,15 +53,40 @@ go install github.com/Cod-e-Codes/tuitar@latest
 - `j` / `↓` - Move cursor down (to next string)
 - `k` / `↑` - Move cursor up (to previous string)
 - `l` / `→` - Move cursor right
-- `x` - Delete character at cursor
+- `x` - Delete fret (replace with dash)
 - `Space` - Play/pause tab
 - `i` - Switch to insert mode
-- `Esc` - Stay in normal mode (no insertion)
+- `Tab` - Return to browser
+- `Esc` - Stay in normal mode
 
 ### Editor Mode (Insert)
-- `0-9` - Insert fret number
-- `-` - Insert rest
+- `0-9` - Insert fret number (auto-advances cursor)
+- `-` - Insert rest/dash (auto-advances cursor)
+- `Backspace` - Delete previous character and move back
+- `Arrow keys` / `hjkl` - Navigate while in insert mode
 - `Esc` - Return to normal mode
+
+## Editing Workflow
+
+Tuitar uses a modal editing system inspired by Vim:
+
+1. **Normal Mode** (default): Navigate and perform editing commands
+   - Use arrow keys or `hjkl` to move the cursor
+   - Press `i` to enter Insert mode at the current position
+   - Press `x` to delete the fret number at cursor (replaces with `-`)
+
+2. **Insert Mode**: Type fret numbers and navigate
+   - Type `0-9` to insert fret numbers
+   - Type `-` to insert rests
+   - The cursor automatically advances after inserting
+   - Use `Backspace` to delete and move backward
+   - Press `Esc` to return to Normal mode
+
+3. **Visual Feedback**: 
+   - Current cursor position is highlighted
+   - Insert mode shows with yellow/gold highlighting
+   - Normal mode shows with blue highlighting
+   - Mode indicator shows current editing mode
 
 ## Project Structure
 
@@ -102,6 +127,15 @@ go build -o tuitar
 - [Lipgloss](https://github.com/charmbracelet/lipgloss) - Terminal styling
 - [SQLite](https://github.com/mattn/go-sqlite3) - Local database
 
+## Tips & Tricks
+
+- **Quick Start**: Press `Ctrl+N` to create a new tab and start editing immediately
+- **Save Often**: Use `Ctrl+S` to save your work - changes are highlighted when unsaved
+- **Navigation**: Use `hjkl` keys for faster navigation without leaving home row
+- **Insert Flow**: In Insert mode, type fret numbers quickly - the cursor advances automatically
+- **Error Correction**: Use `x` in Normal mode for quick deletions, or `Backspace` in Insert mode
+- **Mode Awareness**: Watch the mode indicator to know which editing mode you're in
+
 ## Contributing
 
 1. Fork the repository
@@ -118,7 +152,11 @@ MIT License - see LICENSE file for details
 
 - [ ] Full MIDI playback with actual audio output
 - [ ] Guitar Pro file import/export
-- [ ] Advanced tab notation (bends, slides, etc.)
-- [ ] Multi-instrument support
+- [ ] Advanced tab notation (bends, slides, hammer-ons, pull-offs)
+- [ ] Multi-instrument support (bass, drums, etc.)
+- [ ] Chord symbols and lyrics support
 - [ ] Plugin system for extensibility
 - [ ] Network sync capabilities
+- [ ] Customizable key bindings
+- [ ] Tab validation and error checking
+- [ ] Export to various formats (ASCII, PDF, MusicXML)
