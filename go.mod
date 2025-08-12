@@ -1,4 +1,4 @@
-module tuitar
+module github.com/Cod-e-Codes/tuitar
 
 go 1.24.5
 
