@@ -3,7 +3,6 @@ package ui
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -18,13 +17,13 @@ type Model struct {
 	state      models.SessionState
 	storage    storage.Storage
 	tabs       []models.Tab
-	
+
 	// Components
 	tabEditor  components.TabEditorModel
 	tabBrowser components.TabBrowserModel
 	statusBar  components.StatusBarModel
 	help       help.Model
-	
+
 	// UI State
 	windowSize tea.WindowSizeMsg
 	showHelp   bool
@@ -45,6 +44,19 @@ type KeyMap struct {
 	Insert    key.Binding
 	Normal    key.Binding
 	Browser   key.Binding
+}
+
+func (k KeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Help, k.Quit}
+}
+
+func (k KeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Up, k.Down, k.Left, k.Right},
+		{k.Enter, k.Quit, k.Help},
+		{k.Save, k.New, k.Play},
+		{k.Insert, k.Normal, k.Browser},
+	}
 }
 
 func NewKeyMap() KeyMap {
@@ -106,7 +118,7 @@ func NewKeyMap() KeyMap {
 
 func NewModel(storage storage.Storage) Model {
 	tabs, _ := storage.LoadAllTabs()
-	
+
 	m := Model{
 		storage:    storage,
 		tabs:       tabs,
@@ -115,10 +127,10 @@ func NewModel(storage storage.Storage) Model {
 		tabBrowser: components.NewTabBrowser(tabs),
 		statusBar:  components.NewStatusBar(),
 	}
-	
+
 	m.state.ViewMode = models.ViewBrowser
 	m.state.EditMode = models.EditNormal
-	
+
 	return m
 }
 
@@ -185,7 +197,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) updateBrowser(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	
+
 	switch {
 	case key.Matches(msg, m.keys.Enter):
 		if len(m.tabs) > 0 && m.tabBrowser.Cursor() < len(m.tabs) {
@@ -196,29 +208,29 @@ func (m Model) updateBrowser(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	}
-	
+
 	m.tabBrowser, cmd = m.tabBrowser.Update(msg)
 	return m, cmd
 }
 
 func (m Model) updateEditor(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	
+
 	switch {
 	case key.Matches(msg, m.keys.Insert):
 		m.state.EditMode = models.EditInsert
 		return m, nil
-		
+
 	case key.Matches(msg, m.keys.Normal):
 		m.state.EditMode = models.EditNormal
 		return m, nil
 	}
-	
+
 	m.tabEditor, cmd = m.tabEditor.Update(msg)
 	if m.tabEditor.HasChanged() {
 		m.state.CurrentTab = m.tabEditor.GetTab()
 	}
-	
+
 	return m, cmd
 }
 
@@ -228,16 +240,16 @@ func (m Model) View() string {
 	}
 
 	var content string
-	
+
 	switch m.state.ViewMode {
 	case models.ViewBrowser:
 		content = m.renderBrowser()
 	case models.ViewEditor:
 		content = m.renderEditor()
 	}
-	
+
 	statusBar := m.statusBar.View()
-	
+
 	return lipgloss.JoinVertical(lipgloss.Left, content, statusBar)
 }
 
@@ -246,11 +258,11 @@ func (m Model) renderBrowser() string {
 		Bold(true).
 		Foreground(lipgloss.Color("12")).
 		Render("Guitar Tab Browser")
-		
+
 	help := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("8")).
 		Render("Enter: Edit • Ctrl+N: New • Tab: Switch View • ?: Help • Q: Quit")
-	
+
 	return lipgloss.JoinVertical(lipgloss.Left,
 		title,
 		"",
@@ -264,26 +276,26 @@ func (m Model) renderEditor() string {
 	if m.state.CurrentTab == nil {
 		return "No tab selected"
 	}
-	
+
 	title := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("12")).
 		Render(fmt.Sprintf("Editing: %s", m.state.CurrentTab.Name))
-	
+
 	mode := "NORMAL"
 	if m.state.EditMode == models.EditInsert {
 		mode = "INSERT"
 	}
-	
+
 	modeIndicator := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("11")).
 		Render(fmt.Sprintf("-- %s --", mode))
-	
+
 	help := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("8")).
 		Render("I: Insert • Esc: Normal • Ctrl+S: Save • Tab: Browser • Space: Play")
-	
+
 	return lipgloss.JoinVertical(lipgloss.Left,
 		title,
 		"",
