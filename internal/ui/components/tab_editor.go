@@ -26,12 +26,12 @@ func NewTabEditor(tab *models.Tab) TabEditorModel {
 	// Initialize tab content if it's empty (check if first string is empty)
 	if tab.Content[0] == "" {
 		tab.Content = [6]string{
-			"----------",
-			"----------", 
-			"----------",
-			"----------",
-			"----------",
-			"----------",
+			"----------------",
+			"----------------", 
+			"----------------",
+			"----------------",
+			"----------------",
+			"----------------",
 		}
 	}
 
@@ -39,6 +39,7 @@ func NewTabEditor(tab *models.Tab) TabEditorModel {
 		tab:      tab,
 		viewport: vp,
 		cursor:   models.Position{String: 0, Position: 0},
+		editMode: models.EditNormal, // Initialize to normal mode
 	}
 }
 
@@ -53,6 +54,7 @@ func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		// Navigation keys work in both modes
 		case "h", "left":
 			if m.cursor.Position > 0 {
 				m.cursor.Position--
@@ -70,19 +72,41 @@ func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
 			if m.cursor.String < 5 {
 				m.cursor.String++
 			}
+		
+		// Insert mode specific keys
 		case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
 			if m.editMode == models.EditInsert {
 				m.insertCharAt(m.cursor, rune(msg.String()[0]))
 				m.changed = true
+				// Move cursor to next position after inserting
+				if m.cursor.Position < len(m.tab.Content[m.cursor.String])-1 {
+					m.cursor.Position++
+				}
 			}
 		case "-":
 			if m.editMode == models.EditInsert {
 				m.insertCharAt(m.cursor, '-')
 				m.changed = true
+				// Move cursor to next position after inserting
+				if m.cursor.Position < len(m.tab.Content[m.cursor.String])-1 {
+					m.cursor.Position++
+				}
 			}
+		
+		// Delete key works in normal mode
 		case "x":
-			m.deleteCharAt(m.cursor)
-			m.changed = true
+			if m.editMode == models.EditNormal {
+				m.deleteCharAt(m.cursor)
+				m.changed = true
+			}
+		
+		// Backspace works in insert mode
+		case "backspace":
+			if m.editMode == models.EditInsert && m.cursor.Position > 0 {
+				m.cursor.Position--
+				m.deleteCharAt(m.cursor)
+				m.changed = true
+			}
 		}
 	}
 
@@ -110,7 +134,7 @@ func (m *TabEditorModel) deleteCharAt(pos models.Position) {
 func (m TabEditorModel) View() string {
 	var lines []string
 
-	// String labels
+	// String labels (high to low pitch, matching guitar orientation)
 	stringLabels := []string{"e", "B", "G", "D", "A", "E"}
 
 	for i, label := range stringLabels {
@@ -152,10 +176,22 @@ func (m TabEditorModel) HasChanged() bool {
 	return m.changed
 }
 
+func (m *TabEditorModel) ResetChanged() {
+	m.changed = false
+}
+
 func (m TabEditorModel) GetTab() *models.Tab {
 	return m.tab
 }
 
 func (m *TabEditorModel) SetEditMode(mode models.EditMode) {
 	m.editMode = mode
+}
+
+func (m TabEditorModel) GetEditMode() models.EditMode {
+	return m.editMode
+}
+
+func (m TabEditorModel) GetCursor() models.Position {
+	return m.cursor
 }
