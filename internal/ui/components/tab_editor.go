@@ -11,17 +11,27 @@ import (
 )
 
 type TabEditorModel struct {
-	tab        *models.Tab
-	cursor     models.Position
-	viewport   viewport.Model
-	width      int
-	height     int
-	changed    bool
-	editMode   models.EditMode
+	tab      *models.Tab
+	cursor   models.Position
+	viewport viewport.Model
+	width    int
+	height   int
+	changed  bool
+	editMode models.EditMode
 }
 
 func NewTabEditor(tab *models.Tab) TabEditorModel {
 	vp := viewport.New(80, 20)
+
+	// Ensure tab content is always valid (6 strings, same length)
+	if len(tab.Content) != 6 {
+		tab.Content = make([]string, 6)
+	}
+	for i := range tab.Content {
+		if len(tab.Content[i]) == 0 {
+			tab.Content[i] = strings.Repeat("-", 80) // default 80 fret positions
+		}
+	}
 
 	return TabEditorModel{
 		tab:      tab,
@@ -35,6 +45,11 @@ func (m *TabEditorModel) SetSize(width, height int) {
 	m.height = height
 	m.viewport.Width = width
 	m.viewport.Height = height - 4 // Reserve space for headers
+}
+
+// SetEditMode lets parent sync mode into the editor
+func (m *TabEditorModel) SetEditMode(mode models.EditMode) {
+	m.editMode = mode
 }
 
 func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
@@ -97,8 +112,6 @@ func (m *TabEditorModel) deleteCharAt(pos models.Position) {
 
 func (m TabEditorModel) View() string {
 	var lines []string
-
-	// String labels
 	stringLabels := []string{"e", "B", "G", "D", "A", "E"}
 
 	for i, label := range stringLabels {
@@ -106,12 +119,9 @@ func (m TabEditorModel) View() string {
 			Foreground(lipgloss.Color("14")).
 			Render(label + "|")
 
-		// Render tab content with cursor highlighting
 		content := m.tab.Content[i]
 		for pos, char := range content {
 			style := lipgloss.NewStyle()
-
-			// Highlight cursor position
 			if m.cursor.String == i && m.cursor.Position == pos {
 				if m.editMode == models.EditInsert {
 					style = style.Background(lipgloss.Color("11")).Foreground(lipgloss.Color("0"))
@@ -119,7 +129,6 @@ func (m TabEditorModel) View() string {
 					style = style.Background(lipgloss.Color("12")).Foreground(lipgloss.Color("15"))
 				}
 			}
-
 			line += style.Render(string(char))
 		}
 
@@ -132,7 +141,6 @@ func (m TabEditorModel) View() string {
 
 	content := strings.Join(lines, "\n")
 	m.viewport.SetContent(content)
-
 	return m.viewport.View()
 }
 
@@ -142,8 +150,4 @@ func (m TabEditorModel) HasChanged() bool {
 
 func (m TabEditorModel) GetTab() *models.Tab {
 	return m.tab
-}
-
-func (m *TabEditorModel) SetEditMode(mode models.EditMode) {
-	m.editMode = mode
 }
