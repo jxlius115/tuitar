@@ -7,7 +7,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/Ccd-e-Codew/tuitar/internal/storage"
+	"github.com/Cod-e-Codes/tuitar/internal/storage"
 	"github.com/Cod-e-Codes/tuitar/internal/ui"
 )
 
