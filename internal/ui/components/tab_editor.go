@@ -10,6 +10,10 @@ import (
 	"github.com/Cod-e-Codes/tuitar/internal/models"
 )
 
+type HighlightUpdateMsg struct {
+	Positions []models.Position
+}
+
 type TabEditorModel struct {
 	tab             *models.Tab
 	cursor          models.Position
@@ -51,12 +55,20 @@ func (m *TabEditorModel) SetSize(width, height int) {
 	m.viewport.Height = height - 4 // Reserve space for headers
 }
 
+// Updated to set changed = true to force re-render on highlight change
 func (m *TabEditorModel) SetHighlightedPositions(positions []models.Position) {
 	m.highlightedPos = positions
+	m.changed = true
 }
 
+// Update now handles external highlight update message to refresh highlights
 func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case HighlightUpdateMsg:
+		m.highlightedPos = msg.Positions
+		m.changed = true
+		return m, nil
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		// Navigation keys work in both modes
@@ -87,7 +99,6 @@ func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
 			if m.editMode == models.EditInsert {
 				m.insertCharAt(m.cursor, rune(msg.String()[0]))
 				m.changed = true
-				// Move cursor to next position after inserting
 				if m.cursor.Position < len(m.tab.Content[m.cursor.String])-1 {
 					m.cursor.Position++
 				}
@@ -96,7 +107,6 @@ func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
 			if m.editMode == models.EditInsert {
 				m.insertCharAt(m.cursor, '-')
 				m.changed = true
-				// Move cursor to next position after inserting
 				if m.cursor.Position < len(m.tab.Content[m.cursor.String])-1 {
 					m.cursor.Position++
 				}
