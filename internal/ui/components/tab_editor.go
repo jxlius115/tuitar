@@ -28,7 +28,7 @@ func NewTabEditor(tab *models.Tab) TabEditorModel {
 	if tab.Content[0] == "" {
 		tab.Content = [6]string{
 			"----------------",
-			"----------------", 
+			"----------------",
 			"----------------",
 			"----------------",
 			"----------------",
@@ -81,7 +81,7 @@ func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
 			m.cursor.Position = 0
 		case "end":
 			m.cursor.Position = len(m.tab.Content[m.cursor.String]) - 1
-		
+
 		// Insert mode specific keys
 		case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
 			if m.editMode == models.EditInsert {
@@ -101,14 +101,14 @@ func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
 					m.cursor.Position++
 				}
 			}
-		
+
 		// Delete key works in normal mode
 		case "x":
 			if m.editMode == models.EditNormal {
 				m.deleteCharAt(m.cursor)
 				m.changed = true
 			}
-		
+
 		// Backspace works in insert mode
 		case "backspace", "ctrl+h":
 			if m.editMode == models.EditInsert && m.cursor.Position > 0 {
@@ -146,23 +146,36 @@ func (m TabEditorModel) View() string {
 	// String labels (high to low pitch, matching guitar orientation)
 	stringLabels := []string{"e", "B", "G", "D", "A", "E"}
 
+	// Helper to check if position is highlighted
+	isHighlighted := func(str, pos int) bool {
+		for _, hp := range m.highlightedPos {
+			if hp.String == str && hp.Position == pos {
+				return true
+			}
+		}
+		return false
+	}
+
 	for i, label := range stringLabels {
 		line := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("14")).
 			Render(label + "|")
 
-		// Render tab content with cursor highlighting
+		// Render tab content with cursor and playback highlighting
 		content := m.tab.Content[i]
 		for pos, char := range content {
 			style := lipgloss.NewStyle()
 
-			// Highlight cursor position
+			// Highlight cursor position (takes precedence)
 			if m.cursor.String == i && m.cursor.Position == pos {
 				if m.editMode == models.EditInsert {
 					style = style.Background(lipgloss.Color("11")).Foreground(lipgloss.Color("0"))
 				} else {
 					style = style.Background(lipgloss.Color("12")).Foreground(lipgloss.Color("15"))
 				}
+			} else if isHighlighted(i, pos) {
+				// Highlight playback positions with cyan background
+				style = style.Background(lipgloss.Color("37")).Foreground(lipgloss.Color("0"))
 			}
 
 			line += style.Render(string(char))
