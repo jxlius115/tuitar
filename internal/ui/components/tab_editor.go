@@ -11,19 +11,20 @@ import (
 )
 
 type TabEditorModel struct {
-	tab        *models.Tab
-	cursor     models.Position
-	viewport   viewport.Model
-	width      int
-	height     int
-	changed    bool
-	editMode   models.EditMode
+	tab             *models.Tab
+	cursor          models.Position
+	viewport        viewport.Model
+	width           int
+	height          int
+	changed         bool
+	editMode        models.EditMode
+	highlightedPos  []models.Position // For playback highlighting
 }
 
 func NewTabEditor(tab *models.Tab) TabEditorModel {
 	vp := viewport.New(80, 20)
 
-	// Initialize tab content if it's empty (check if first string is empty)
+	// Initialize tab content if it's empty
 	if tab.Content[0] == "" {
 		tab.Content = [6]string{
 			"----------------",
@@ -39,7 +40,7 @@ func NewTabEditor(tab *models.Tab) TabEditorModel {
 		tab:      tab,
 		viewport: vp,
 		cursor:   models.Position{String: 0, Position: 0},
-		editMode: models.EditNormal, // Initialize to normal mode
+		editMode: models.EditNormal,
 	}
 }
 
@@ -48,6 +49,10 @@ func (m *TabEditorModel) SetSize(width, height int) {
 	m.height = height
 	m.viewport.Width = width
 	m.viewport.Height = height - 4 // Reserve space for headers
+}
+
+func (m *TabEditorModel) SetHighlightedPositions(positions []models.Position) {
+	m.highlightedPos = positions
 }
 
 func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
@@ -72,6 +77,10 @@ func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
 			if m.cursor.String < 5 {
 				m.cursor.String++
 			}
+		case "home":
+			m.cursor.Position = 0
+		case "end":
+			m.cursor.Position = len(m.tab.Content[m.cursor.String]) - 1
 		
 		// Insert mode specific keys
 		case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
@@ -101,7 +110,7 @@ func (m TabEditorModel) Update(msg tea.Msg) (TabEditorModel, tea.Cmd) {
 			}
 		
 		// Backspace works in insert mode
-		case "backspace":
+		case "backspace", "ctrl+h":
 			if m.editMode == models.EditInsert && m.cursor.Position > 0 {
 				m.cursor.Position--
 				m.deleteCharAt(m.cursor)
