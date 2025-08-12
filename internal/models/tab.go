@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/Cod-e-Codes/tuitar/internal/models"
 )
 
 // HighlightUpdateMsg is sent to update the highlighted positions for playback
