@@ -1,5 +1,4 @@
-// README.md for the TUI version
-# TUIar
+# tuitar
 
 A terminal-based guitar tablature editor built with Go and Bubble Tea.
 
