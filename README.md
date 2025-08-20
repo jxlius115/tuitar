@@ -158,12 +158,6 @@ MIT License - see LICENSE file for details
 ## Roadmap
 
 - [ ] Full MIDI playback with actual audio output
-- [ ] Guitar Pro file import/export
 - [ ] Advanced tab notation (bends, slides, hammer-ons, pull-offs)
 - [ ] Multi-instrument support (bass, drums, etc.)
-- [ ] Chord symbols and lyrics support
-- [ ] Plugin system for extensibility
-- [ ] Network sync capabilities
-- [ ] Customizable key bindings
-- [ ] Tab validation and error checking
-- [ ] Export to various formats (ASCII, PDF, MusicXML)
+- [ ] Tab sharing
